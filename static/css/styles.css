@@ -1,0 +1,144 @@
+
+
+/* General styles */
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f8f8f8;
+  overflow-y: scroll;
+  overflow-x: scroll;
+}
+
+/* Header styles */
+
+.header {
+  background-color: #eef3ec;
+  border-bottom: 10px solid #050505;
+  padding: 20px 0;
+  text-align: center;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header h1 {
+  color: #333;
+  font-size: 36px;
+  font-weight: bold;
+  margin: 0;
+  text-transform: uppercase;
+  flex: 1;
+}
+
+.header ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.header ul li {
+  margin-right: 20px;
+}
+
+.header ul li a {
+  color: #fff;
+  text-decoration: none;
+  font-size: 20px;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: color 0.2s ease-in-out;
+}
+
+.header ul li a:hover {
+  color: #ddd;
+}
+
+
+/* Circle container styles */
+
+.circle-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+/* Circle styles */
+
+.circle {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background-color: #fff;
+  box-shadow: 3px 5px 25px #98fc03;
+  margin: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.circle .label {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.circle .value {
+  font-size: 40px;
+  font-weight: bold;
+  color: #0077be;
+}
+
+
+/* table container styles */
+.table-container {
+  overflow-x: auto;
+  max-height: auto;
+}
+
+/* table styles */
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  margin-bottom: 20px; /* Add a margin-bottom of 20px */
+}
+
+
+/* table header styles */
+.table th {
+  position: sticky;
+  top: 0;
+  background-color: #0077be;
+  color: #fff;
+}
+
+/* table cell styles */
+.table td,
+.table th {
+  padding: 8px;
+  border: 1px solid #ddd;
+}
+
+
+/* Footer styles */
+
+.footer {
+  background-color: #0077be;
+  color: #fff;
+  padding: 20px;
+  text-align: center;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+.footer p {
+  margin: 0;
+  font-size: 14px;
+}

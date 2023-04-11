@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bisleri Sales View</title>
+    <link rel="stylesheet" type="text/css" href="static/css/styles.css">
+  </head>
+  <body>
+    <div class="header">
+      <h1>Bisleri Sales View</h1>
+    </div>
+    <div class="circle-container">
+      <div class="circle">
+        <div class="label">Available Stock</div>
+        <div class="value">{{ dict['available_stock'] }}</div>
+      </div>
+      <div class="circle">
+        <div class="label">Available Empties</div>
+        <div class="value">{{ dict['available_empties'] }}</div>
+      </div>
+      <div class="circle">
+        <div class="label">Available Amount</div>
+        <div class="value">{{ dict['available_amount'] }}</div>
+      </div>
+      <div class="circle">
+        <div class="label">On Hold Amount</div>
+        <div class="value">{{ dict['On_hold_amount'] }}</div>
+      </div>
+      <div class="circle">
+        <div class="label">E-commerce</div>
+        <div class="value">{{ dict['e_commerce'] }}</div>
+      </div>
+      <div class="circle">
+        <div class="label">Total Expenses</div>
+        <div class="value">{{ dict['Total_Expensives'] }}</div>
+      </div>
+    </div>
+    {% if loading %}
+      <div class="loading">
+        <div class="loader"></div>
+        Loading...
+      </div>
+    {% else %}
+      <div class="table-container">
+        <table class="table">
+          {{ dataframe|safe }}
+        </table>
+      </div>
+    {% endif %}
+    <div class="footer">
+      <p>&copy; 2023 Bisleri Sales View</p>
+    </div>
+  </body>
+</html>

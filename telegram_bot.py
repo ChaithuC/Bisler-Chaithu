@@ -15,15 +15,21 @@ class BotGadu:
         @self.bot.message_handler(commands=['start'])
         def start(message):
             print(f"Bot working for user First name: {message.from_user.first_name} Last name: {message.from_user.last_name} and ID : {message.chat.id}")
-            user_input = self.bot.reply_to(message, "Hello Amigo! Please enter your password to enter the sales data")
+            user_input = self.bot.reply_to(message, "Hello Amigo! Please Enter Your Password to Continue ")
             self.bot.register_next_step_handler(user_input, self.authorize_user)
 
     def authorize_user(self, user_input):
         input = int(user_input.text) 
         if input == int(os.environ['sales_enter_password']): 
-            self.bot.send_message(user_input.chat.id,"Hey Man, The Password is Correct")
+            self.bot.send_message(user_input.chat.id,"Entered into the sales data entry Mode")
             date = self.bot.send_message(user_input.chat.id,"Please Enter the Date of sales in this format: dd-mm-yyyy (e.g. 02-06-2004)")
             self.bot.register_next_step_handler(date, self.get_date)
+        elif input == int(os.environ['Authoriser']):
+            self.bot.send_message(user_input.chat.id,"Entered into Authoriser Mode")
+            self.bot.send_message(user_input.chat.id,"To Update stock Reply 1")
+            output = self.bot.send_message(user_input.chat.id,"To Finance Reply 2")
+            self.bot.register_next_step_handler(output, self.S_F_Handler)
+            return
         else:
             self.bot.send_message(user_input.chat.id, "Hey man, This is else block")
     
@@ -232,6 +238,78 @@ class BotGadu:
         except Exception as e:
             self.bot.send_message(user_input.chat.id, f"An error {e} occurred while processing your request.Please try again by pressing /start.")
 
-    def run(self):
+
+
+    ## Test Mode
+    
+    def S_F_Handler(self, user_input):
+        if int(user_input.text) == 1:
+            self.bot.send_message(user_input.chat.id, "stock updating mode/n Enter the STOCK Imported")
+            self.bot.register_next_step_handler(user_input, self.handle_stock_input)
+        elif int(user_input.text) == 2:
+            self.bot.send_message(user_input.chat.id, "Finance updating mod/n Enter amount to deduct from available amount")
+            self.bot.register_next_step_handler(user_input, self.update_available_amount)
+        else:
+            self.bot.send_message(user_input.chat.id, "Came to an exception")
+        return
+    
+    def handle_stock_input(self, user_input):
+        stock = int(user_input.text)
+        self.bot.send_message(user_input.chat.id, "how many EMPTIES are returned")
+        self.bot.register_next_step_handler(user_input, self.handle_empties_input, stock)
+    
+    def handle_empties_input(self, user_input, stock):
+        empties = int(user_input.text)
+        self.bot.send_message(user_input.chat.id, "How many cans of DEPOSIT")
+        self.bot.register_next_step_handler(user_input, self.handle_deposit_input, stock, empties)
         
+    def handle_deposit_input(self, user_input, stock, empties):
+        deposit = int(user_input.text)
+        data = {'stock': stock, 'empties': empties, 'deposit': deposit, 'reason': "STOCK_IMPORTED",}
+        self.bot.send_message(user_input.chat.id, f"Data collected: {data}")
+        confirmation = Database.stock_finance_handler(data)
+        if confirmation == True:
+            print("yes")
+        else:
+            self.bot.send_message(user_input.chat.id, "There is an issue in updating the data")
+            
+    def update_available_amount(self, user_input):
+        available_amount  = int(user_input.text)
+        data = {'available_amount': available_amount}
+        self.bot.send_message(user_input.chat.id, "Enter the E-Commerece Amount received")
+        self.bot.register_next_step_handler(user_input, self.update_ecommerce_amount, data)
+        return 
+
+    def update_ecommerce_amount(self, user_input, data):
+        data['e_commerce'] = int(user_input.text)
+        self.bot.send_message(user_input.chat.id, "Enter amount to deducte from on hold amount ")
+        self.bot.register_next_step_handler(user_input, self.update_hold_amount, data)
+        return 
+    
+    def update_hold_amount(self, user_input, data):
+        data['hold_amount'] =  int(user_input.text)
+        self.bot.send_message(user_input.chat.id,"Enter amount to deducte from Expenses ")
+        self.bot.register_next_step_handler(user_input, self.reason, data)
+        return 
+        
+    def reason(self, user_input, data):
+        data['update_expenses'] = int(user_input.text)
+        self.bot.send_message(user_input.chat.id,"Enter the Reson for upadates ")
+        self.bot.register_next_step_handler(user_input, self.update_expenses, data)
+        return 
+    
+    def update_expenses(self, user_input, data):
+        data['reason'] =  user_input.text
+        self.bot.send_message(user_input.chat.id, f"Updating with: {data}")
+        confirmation = Database.stock_finance_handler(data)
+        if confirmation == True:
+            print("yes")
+        else:
+            self.bot.send_message(user_input.chat.id, "There is an issue in updating the data")
+        return  
+
+        
+    ## END
+
+    def run(self):
         self.bot.infinity_polling()

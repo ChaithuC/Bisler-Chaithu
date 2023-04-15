@@ -1,5 +1,7 @@
+import os
 import time
 import pytz
+import json
 import random
 import gspread
 import pandas as pd
@@ -10,7 +12,8 @@ get_india_datetime = lambda: (datetime.now(pytz.timezone('Asia/Kolkata')).strfti
 
 class Database:
     scope = ['https://www.googleapis.com/auth/spreadsheets','https://www.googleapis.com/auth/drive']
-    creds = Credentials.from_service_account_file('creds_google.json',scopes=scope)
+    creds_json = json.loads(os.environ['g_creds'])
+    creds = creds = Credentials.from_service_account_info(info=creds_json, scopes=scope)
 
     @staticmethod
     def date_validator(input_date):
@@ -126,4 +129,12 @@ class Database:
             print(f"Error occurred while creating or updating JSON: {e}")
         else:
             print("JSON created and updated successfully!")
-    
+
+    @staticmethod
+    def stock_finance_handler(dictonary):
+        print("dictonary:", dictonary)
+        if dictonary['reason'] == 'STOCK_IMPORTED':
+            return
+        elif  dictonary['reason'] == 'STOCK_IMPORTED':
+            return 
+        return True

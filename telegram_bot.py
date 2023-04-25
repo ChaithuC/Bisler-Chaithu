@@ -238,16 +238,12 @@ class BotGadu:
         except Exception as e:
             self.bot.send_message(user_input.chat.id, f"An error {e} occurred while processing your request.Please try again by pressing /start.")
 
-
-
-    ## Test Mode
-    
     def S_F_Handler(self, user_input):
         if int(user_input.text) == 1:
-            self.bot.send_message(user_input.chat.id, "stock updating mode/n Enter the STOCK Imported")
+            self.bot.send_message(user_input.chat.id, "stock updating mode\n Enter the STOCK Imported")
             self.bot.register_next_step_handler(user_input, self.handle_stock_input)
         elif int(user_input.text) == 2:
-            self.bot.send_message(user_input.chat.id, "Finance updating mod/n Enter amount to deduct from available amount")
+            self.bot.send_message(user_input.chat.id, "Finance updating mod\n Enter amount to deduct from available amount")
             self.bot.register_next_step_handler(user_input, self.update_available_amount)
         else:
             self.bot.send_message(user_input.chat.id, "Came to an exception")
@@ -266,13 +262,17 @@ class BotGadu:
     def handle_deposit_input(self, user_input, stock, empties):
         deposit = int(user_input.text)
         data = {'stock': stock, 'empties': empties, 'deposit': deposit, 'reason': "STOCK_IMPORTED",}
-        self.bot.send_message(user_input.chat.id, f"Data collected: {data}")
+        message = f"Data collected:\nStock: {data['stock']}\nEmpties: {data['empties']}\nDeposit: {data['deposit']}\nReason: {data['reason']}\n\n Please wait while data being updating in the background"
+        self.bot.send_message(user_input.chat.id, message)
         confirmation = Database.stock_finance_handler(data)
         if confirmation == True:
-            print("yes")
+            self.bot.send_message(user_input.chat.id, "Data Updated Sucessfully!")
+            self.bot.send_message(user_input.chat.id, "Press here > /start to restart ")
         else:
             self.bot.send_message(user_input.chat.id, "There is an issue in updating the data")
-            
+
+    
+    ## Test Mode   
     def update_available_amount(self, user_input):
         available_amount  = int(user_input.text)
         data = {'available_amount': available_amount}
@@ -282,7 +282,7 @@ class BotGadu:
 
     def update_ecommerce_amount(self, user_input, data):
         data['e_commerce'] = int(user_input.text)
-        self.bot.send_message(user_input.chat.id, "Enter amount to deducte from on hold amount ")
+        self.bot.send_message(user_input.chat.id, "Enter amount to deducte from on hold amount")
         self.bot.register_next_step_handler(user_input, self.update_hold_amount, data)
         return 
     
@@ -307,9 +307,7 @@ class BotGadu:
         else:
             self.bot.send_message(user_input.chat.id, "There is an issue in updating the data")
         return  
-
-        
-    ## END
+    ## END 
 
     def run(self):
         self.bot.infinity_polling()

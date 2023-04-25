@@ -14,6 +14,7 @@ class Database:
     scope = ['https://www.googleapis.com/auth/spreadsheets','https://www.googleapis.com/auth/drive']
     creds_json = json.loads(os.environ['g_creds'])
     creds = creds = Credentials.from_service_account_info(info=creds_json, scopes=scope)
+    transaction_id_generator = lambda : f"{int(time.time())}-{random.randint(1, 100000)}"
 
     @staticmethod
     def date_validator(input_date):
@@ -31,13 +32,12 @@ class Database:
             return None
 
     @staticmethod
-    def sheets_data_updater(dictionary, sheet_name, sheet_number, task):
+    def sheets_data_updater(dictionary, sheet_name, sheet_number, task, required_data = False):
         try:
             client = gspread.authorize(Database.creds)
             sheet = client.open(sheet_name).worksheet(sheet_number)
-            transaction_id_generator = lambda : f"{int(time.time())}-{random.randint(1, 100000)}"
             if task == 'Updating_sales_data':
-                dictionary['transaction_id'] = transaction_id_generator()
+                dictionary['transaction_id'] = Database.transaction_id_generator()
                 sheet.append_row(list(dictionary.values()))
                 print("Data appended to sheets!")
                 return True
@@ -51,6 +51,17 @@ class Database:
                 sheet.append_row(list(dictionary.values()))
                 print("Updating_transaction_record")
                 return True
+            elif task == 'STOCK_IMPORTED':
+                if required_data:
+                    information = {}
+                    information['transaction_id'] = Database.transaction_id_generator()
+                    sheet.update('A2', dictionary.get('available_stock'))
+                    sheet.update('B2', dictionary.get('available_empties'))
+                    print("As STOCK_IMPORTED, Data updated in DB for stock and empties")
+                    new_data = Database.get_sheet_data()
+                    information['reason'] = 'STOCK_IMPORTED'
+                    Database.create_update_json(required_data, new_data, information)
+                    return True
         except Exception as e:
             print(f"An error occurred while updating data: {e}")
             return False
@@ -107,7 +118,7 @@ class Database:
                 'On_hold_amount': On_hold_amount,
                 'e_commerce': e_commerce,
                 'Total_Expensives': Total_Expensives}
-
+            information['reason']="sales_data_updated"
             Database.create_update_json(required_data, updated_data, information)
             checker = Database.sheets_data_updater(updated_data, 'sale_logger', 'Sheet3','Updating_stock_Finance')
             if checker == True:
@@ -121,20 +132,29 @@ class Database:
     @staticmethod
     def create_update_json(old_data, new_data, information):
         try:
+            print("Transaction creating")
             update_dict = {key: {'old_value': old_data.get(key), 'new_value': new_data.get(key, {})} for key in new_data}
             my_dict = {f"{k}_{change_type}_value": v.get(change_type+'_value', '') for k, v in update_dict.items() for change_type in ['old', 'new']}
-            my_dict.update(transaction_id=information['transaction_id'], reason="sales_data_updated", time=get_india_datetime()[0], date=get_india_datetime()[1])
+            my_dict.update(transaction_id=information['transaction_id'], reason = information['reason'], time=get_india_datetime()[0], date=get_india_datetime()[1])
             Database.sheets_data_updater(my_dict, 'sale_logger', 'Sheet4', 'Updating_transaction_record')
         except Exception as e:
             print(f"Error occurred while creating or updating JSON: {e}")
         else:
-            print("JSON created and updated successfully!")
+            print("Transaction created and updated successfully!")
 
     @staticmethod
-    def stock_finance_handler(dictonary):
-        print("dictonary:", dictonary)
-        if dictonary['reason'] == 'STOCK_IMPORTED':
-            return
-        elif  dictonary['reason'] == 'STOCK_IMPORTED':
-            return 
-        return True
+    def stock_finance_handler(dictionary):
+        if dictionary.get('reason') == 'STOCK_IMPORTED':
+            required_data = Database.get_sheet_data()
+            new_dict = {
+                'available_stock': required_data.get('available_stock', 0) + int(dictionary.get("stock", 0)),
+                'available_empties': required_data.get('available_empties', 0) - int(dictionary.get("empties", 0)) + int(dictionary.get("deposit", 0)),
+                'p_deposites': int(dictionary.get("deposit", 0)),}
+            checker = Database.sheets_data_updater(new_dict, 'sale_logger', 'Sheet3', 'STOCK_IMPORTED',required_data)
+            if checker == True:
+                return True
+            else:
+                return False
+        elif dictionary.get('reason') == 'not':
+            print("else two ") 
+            return False

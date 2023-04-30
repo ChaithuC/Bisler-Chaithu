@@ -62,6 +62,14 @@ class Database:
                     information['reason'] = 'STOCK_IMPORTED'
                     Database.create_update_json(required_data, new_data, information)
                     return True
+            elif task == "Finance_Data_Update":
+                information = {}
+                information['transaction_id'] = Database.transaction_id_generator()
+                sheet.update_cell(2, sheet.find(list(dictionary.keys())[0]).col, int(list(dictionary.values())[0]))
+                new_data = Database.get_sheet_data()
+                information['reason'] = dictionary['cause']
+                Database.create_update_json(required_data, new_data, information)
+                return True
         except Exception as e:
             print(f"An error occurred while updating data: {e}")
             return False
@@ -155,6 +163,22 @@ class Database:
                 return True
             else:
                 return False
-        elif dictionary.get('reason') == 'not':
-            print("else two ") 
-            return False
+        elif dictionary.get('reason') == 'Finance_Data_Update':
+            required_data = Database.get_sheet_data()
+            print("dictionary :", dictionary)
+            if dictionary['key'] == 'deduct_available_amount':
+                new_dict = {'available_amount': required_data.get('available_amount', 0) - int(dictionary.get("value", 0))}
+            elif dictionary['key'] == 'ecommerce_amount_received':
+                new_dict = {'ecommerce_amount_received': required_data.get('e_commerce', 0) - int(dictionary.get("value", 0))}
+            elif dictionary['key'] == 'deduct_on_hold_amount':
+                new_dict = {'On_hold_amount': required_data.get('On_hold_amount', 0) - int(dictionary.get("value", 0))}
+            elif dictionary['key'] =='deduct_expenses':
+                new_dict = {'Total_Expensives': required_data.get('Total_Expensives', 0) - int(dictionary.get("value", 0))}
+            new_dict['cause'] = dictionary['cause']
+            checker = Database.sheets_data_updater(new_dict, 'sale_logger', 'Sheet3', 'Finance_Data_Update',required_data)
+            if checker == True:
+                return True
+            else:
+                return False
+            
+            

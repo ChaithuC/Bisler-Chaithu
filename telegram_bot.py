@@ -243,7 +243,10 @@ class BotGadu:
             self.bot.send_message(user_input.chat.id, "stock updating mode\n Enter the STOCK Imported")
             self.bot.register_next_step_handler(user_input, self.handle_stock_input)
         elif int(user_input.text) == 2:
-            self.bot.send_message(user_input.chat.id, "Finance updating mod\n Enter amount to deduct from available amount")
+            keys = ["deduct_available_amount", "ecommerce_amount_received", "deduct_on_hold_amount", "deduct_expenses"]
+            self.bot.send_message(user_input.chat.id, "Finance updating mod\n Enter the Respective key to update the value")
+            for key in keys:
+                self.bot.send_message(user_input.chat.id, key) 
             self.bot.register_next_step_handler(user_input, self.update_available_amount)
         else:
             self.bot.send_message(user_input.chat.id, "Came to an exception")
@@ -271,43 +274,34 @@ class BotGadu:
         else:
             self.bot.send_message(user_input.chat.id, "There is an issue in updating the data")
 
-    
-    ## Test Mode   
+    ## Version 2 for finance 
     def update_available_amount(self, user_input):
-        available_amount  = int(user_input.text)
-        data = {'available_amount': available_amount}
-        self.bot.send_message(user_input.chat.id, "Enter the E-Commerece Amount received")
-        self.bot.register_next_step_handler(user_input, self.update_ecommerce_amount, data)
-        return 
+        my_dict = {'deduct_available_amount': 'Enter amount to deduct from available amount',
+           'ecommerce_amount_received': 'Enter the E-Commerce Amount to deduct',
+           'deduct_on_hold_amount': 'Enter amount to deduct from on hold amount',
+           'deduct_expenses': 'Enter amount to deduct from Expenses'}
+        for key, value in my_dict.items():
+            if user_input.text == key:
+                self.bot.send_message(user_input.chat.id,value)
+                self.bot.register_next_step_handler(user_input, self.get_finance_reason, key)
 
-    def update_ecommerce_amount(self, user_input, data):
-        data['e_commerce'] = int(user_input.text)
-        self.bot.send_message(user_input.chat.id, "Enter amount to deducte from on hold amount")
-        self.bot.register_next_step_handler(user_input, self.update_hold_amount, data)
-        return 
+    def get_finance_reason(self, user_input, key):
+        data = {'key': key, 'value': user_input.text, 'reason' : "Finance_Data_Update"}
+        self.bot.send_message(user_input.chat.id, "Give the reason for the Finance Update ")
+        self.bot.register_next_step_handler(user_input, self.send_finance_update, data, )
     
-    def update_hold_amount(self, user_input, data):
-        data['hold_amount'] =  int(user_input.text)
-        self.bot.send_message(user_input.chat.id,"Enter amount to deducte from Expenses ")
-        self.bot.register_next_step_handler(user_input, self.reason, data)
-        return 
-        
-    def reason(self, user_input, data):
-        data['update_expenses'] = int(user_input.text)
-        self.bot.send_message(user_input.chat.id,"Enter the Reson for upadates ")
-        self.bot.register_next_step_handler(user_input, self.update_expenses, data)
-        return 
-    
-    def update_expenses(self, user_input, data):
-        data['reason'] =  user_input.text
-        self.bot.send_message(user_input.chat.id, f"Updating with: {data}")
+    def send_finance_update(self, user_input, data):
+        data['cause'] = user_input.text
+        message_text = ""
+        for item, key in data.items():
+            message_text += f' {item} : {key}\n'
+        self.bot.send_message(user_input.chat.id, f"Updating with:\n\n{message_text}\n Please Wait")
         confirmation = Database.stock_finance_handler(data)
         if confirmation == True:
-            print("yes")
+            self.bot.send_message(user_input.chat.id, "Finance Updated Sucessfully!")
+            self.bot.send_message(user_input.chat.id, "Press here > /start to restart ")
         else:
             self.bot.send_message(user_input.chat.id, "There is an issue in updating the data")
-        return  
-    ## END 
 
     def run(self):
         self.bot.infinity_polling()
